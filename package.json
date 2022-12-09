@@ -1,0 +1,7 @@
+{
+  "name": "MS",
+  "version": "1.0.0",
+  "dependencies": {
+    "canvas": "^2.10.2"
+  }
+}
