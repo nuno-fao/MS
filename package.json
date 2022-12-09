@@ -2,6 +2,7 @@
   "name": "MS",
   "version": "1.0.0",
   "dependencies": {
-    "canvas": "^2.10.2"
+    "canvas": "^2.10.2",
+    "voronoi": "^1.0.0"
   }
 }

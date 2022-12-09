@@ -1,4 +1,4 @@
-all: handle_points select_points distance_points
+all: get_nodes_and_edges handle_points select_points distance_points map_draw voronoi
 
 handle_points:
 	python ./src/dataset_stuff/points_compresser.py ./dataset/data/delivery-instances-1.0/dev/rj
@@ -9,8 +9,17 @@ select_points:
 distance_points:
 	node ./src/dataset_stuff/points_distance.js
 
+map_draw:
+	node ./src/dataset_stuff/map_draw.js
+
+voronoi:
+	python src/dataset_stuff/voronoi.py
+
 get_nodes_and_edges:
+ifeq ("$(wildcard ./files/nodes.csv)","")
 	src/dataset_stuff/filter -22.515073574700054 -43.75041975692041 -23.07302600621818 -42.748660360854984 dataset/sudeste-latest.osm.pbf ./files/nodes.csv ./files/edges.csv
-	
+endif
+
+
 clean:
 	rm -R files/*
