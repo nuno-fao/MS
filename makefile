@@ -1,5 +1,7 @@
 all: get_nodes_and_edges handle_points select_points distance_points map_draw voronoi
 
+all_1: handle_points select_points distance_points map_draw voronoi
+
 handle_points:
 	python ./src/dataset_stuff/points_compresser.py ./dataset/data/delivery-instances-1.0/dev/rj
 	
