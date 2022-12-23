@@ -20,6 +20,12 @@ with open("files/step1.json", "r") as read_file:
             sLng = p[1]
     print(bLat, sLng, sLat, bLng)
 
-    points = json.dumps(random.sample(points, int(sys.argv[1])))
+    points = random.sample(points, int(sys.argv[1]))
+    temp_points = {}
+    i = 0
+    for point in points:
+        temp_points[i] = point
+        i+=1
+    points = json.dumps(temp_points)
     with open("files/step2.json", "w") as write_file:
         write_file.write(points)

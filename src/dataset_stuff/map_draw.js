@@ -8,7 +8,8 @@ fs.readFile("files/step2.json", 'utf8', (err, data) => {
     let leftPoint = [1000, -1000]
     let rightPoint = [-1000, 1000]
 
-    for (let point of points) {
+    for (let p in points) {
+        const point = points[p]
         if (point[0] > leftPoint[1]) {
             leftPoint[1] = point[0]
         }
@@ -38,7 +39,8 @@ fs.readFile("files/step2.json", 'utf8', (err, data) => {
 
     context.fillStyle = "#000000";
 
-    for (const point of points) {
+    for (const p in points) {
+        const point = points[p]
         context.fillRect(width - width * getR(point[1], rightPoint[0], leftPoint[0]), height - height * getR(point[0], rightPoint[1], leftPoint[1]), 10, 10);
     }
 

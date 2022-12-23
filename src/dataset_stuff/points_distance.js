@@ -1,30 +1,25 @@
 const fs = require('fs');
-
 fs.readFile("files/step2.json", 'utf8', (err, data) => {
     const distances = {}
-    const ps = {}
     if (err) {
         console.error(err);
         return;
     }
     let points = JSON.parse(data)
-    let i = 0
-    for (const point of points) {
-        ps[point[0] + "_" + point[1]] = i
-        distances[i] = {}
-        i++
+
+    for (const p in points) {
+        distances[p] = {}
     }
 
-    i = 0
 
-    for (const point of points) {
-        i++
-        let current_point = ps[point[0] + "_" + point[1]]
-        for (const op of points.slice(i)) {
-            const other_point = ps[op[0] + "_" + op[1]]
-            const d = distance(point[0], point[1], op[0], op[1])
-            distances[current_point][other_point] = d
-            distances[other_point][current_point] = d
+    for (const p in points) {
+        let point = points[p]
+        for (const op in points) {
+            if (p !== op) {
+                const d = distance(point[0], point[1], points[op][0], points[op][1])
+                distances[p][op] = d
+                distances[op][p] = d
+            }
         }
     }
 
