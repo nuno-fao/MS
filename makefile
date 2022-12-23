@@ -21,6 +21,9 @@ voronoi:
 
 get_nodes_and_edges_linux:
 ifeq ("$(wildcard ./files/nodes.csv)","")
+	if [ ! -f ./dataset/sudeste-latest.osm.pbf ]; then \
+		wget -P ./dataset http://download.geofabrik.de/south-america/brazil/sudeste-latest.osm.pbf; \
+	fi 
 	src/dataset_stuff/filter -22.515073574700054 -43.75041975692041 -23.07302600621818 -42.748660360854984 dataset/sudeste-latest.osm.pbf ./files/nodes.csv ./files/edges.csv
 endif
 

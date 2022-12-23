@@ -1,3 +1,5 @@
 node_modules/
 package-lock.json
 .idea/
+dataset/sudeste-latest.osm.pbf
+files/*
