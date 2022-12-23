@@ -22,7 +22,9 @@ fs.readFile("files/step2.json", 'utf8', (err, data) => {
         let current_point = ps[point[0] + "_" + point[1]]
         for (const op of points.slice(i)) {
             const other_point = ps[op[0] + "_" + op[1]]
-            distances[current_point][other_point] = distance(point[0], point[1], op[0], op[1])
+            const d = distance(point[0], point[1], op[0], op[1])
+            distances[current_point][other_point] = d
+            distances[other_point][current_point] = d
         }
     }
 

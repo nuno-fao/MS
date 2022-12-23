@@ -3,3 +3,4 @@ package-lock.json
 .idea/
 dataset/sudeste-latest.osm.pbf
 files/*
+dataset/data/
