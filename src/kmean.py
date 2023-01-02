@@ -10,14 +10,6 @@ from matplotlib.colors import ListedColormap
 file_url = "../files/step2.json"
 data = pd.read_json(file_url)
 
-### Verify if streetnetwork.graphml file has been created
-# if (not os.path.isfile('streetnetwork.graphml')):
-#     area_graph = ox.graph_from_place('Rio de Janeiro, RJ, Brazil')
-#     ox.save_graphml(area_graph, 'streetnetwork.graphml')
-# else:
-#     area_graph = ox.load_graphml('streetnetwork.graphml')
-
-
 def initialize_centroids(k, data):
     '''
     Initialize k centroids randomly within the range of the data itself
@@ -35,9 +27,6 @@ def initialize_centroids(k, data):
 
     return centroids
 
-centroids = initialize_centroids(3, data)
-# print(centroids)
-
 def calculate_error(a,b):
     '''
     Given two Numpy Arrays, calculates the root of the sum of squared errores.
@@ -50,12 +39,6 @@ def calculate_error(a,b):
     # distance = nx.shortest_path_length(area_graph, (data.iloc[0][0], data.iloc[0][1]), (centroids.iloc[0][0], centroids.iloc[0][1]), weight="length")
 
     return error 
-
-for i, centroid in enumerate(range(centroids.shape[0])):
-    err = calculate_error(centroids.iloc[centroid,:], data.iloc[36,:])
-    print('Error for centroid {0}: {1:.2f}'.format(i, err))
-
-
 
 def centroid_assignation(dset, centroids):
     '''
@@ -84,10 +67,6 @@ def centroid_assignation(dset, centroids):
 
     return assignation, assign_errors
 
-### Add two columns to our data, one containing the centroid assigned and other the error incurred.
-data['centroid'], data['error'] = centroid_assignation(data, centroids)
-data.head()
-
 def kmeans(dset, k=3, tol=1e-4):
     '''
     K-means implementationd for a 
@@ -102,9 +81,12 @@ def kmeans(dset, k=3, tol=1e-4):
     err = []
     goahead = True
     j = 0
+    count = 0
     
     # Step 2: Initiate clusters by defining centroids 
     centroids = initialize_centroids(k, dset)
+
+    print(centroids)
 
     while(goahead):
         # Step 3 and 4 - Assign centroids and calculate error
@@ -127,4 +109,4 @@ def kmeans(dset, k=3, tol=1e-4):
 
 data['centroid'], data['error'], centroids =  kmeans(data, 3)
 data.head()
-print(data.sort_values(by=['centroid']))
+# print(data.sort_values(by=['centroid']))
