@@ -8,6 +8,7 @@ class CarAgent(mesa.Agent):
 
     def __init__(self, unique_id, model, battery_energy, max_battery, average_consume_per_100_km):
         super().__init__(unique_id, model)
+        self.path = None
         self.battery_energy = battery_energy  # battery in W.h
         self.max_battery = max_battery
         self.average_consume_per_100_km = average_consume_per_100_km
@@ -26,6 +27,9 @@ class CarAgent(mesa.Agent):
 
     def charge(self, energy):
         self.battery_energy += energy
+
+    def set_path(self, path):
+        self.path = path
 
     def step(self):
         # The agent's step will go here.
