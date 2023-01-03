@@ -6,107 +6,132 @@ import networkx as nx
 import os
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
+import json
 
-file_url = "../files/step2.json"
-data = pd.read_json(file_url)
+with open('../files/step2.json', 'r') as f:
+  data = json.load(f)
+
+def convert_to_array(data):
+    result = []
+
+    for key in data:
+        result.append([data[key][0], data[key][1]])
+
+    return result
+
+def convert_to_dict(data):
+    result = {}
+
+    for arr in range(len(data)):
+        result["{0}".format(arr)] = data[arr]
+
+    return result
 
 def initialize_centroids(k, data):
     '''
     Initialize k centroids randomly within the range of the data itself
     '''
-    n_dims = data.shape[1]
-    centroid_min = data.min().min()
-    centroid_max = data.max().max()
-    centroids = []
+    # Initialize min_coords and max_coords to very large and small values, respectively
+    min_coords = [float('inf'), float('inf')]
+    max_coords = [float('-inf'), float('-inf')]
 
-    for centroid in range(k):
-        centroid = np.random.uniform(centroid_min, centroid_max, n_dims)
-        centroids.append(centroid)
+    # Find the minimum and maximum values for each coordinate
+    for row in data.values():
+        for i, coord in enumerate(row):
+            if coord < min_coords[i]:
+                min_coords[i] = coord
+            if coord > max_coords[i]:
+                max_coords[i] = coord
 
-    centroids = pd.DataFrame(centroids, columns = data.columns)
+    # Initialize k centroids randomly within the range of the data
+    centroids = np.random.uniform(low=min_coords, high=max_coords, size=(k, len(min_coords)))
+    return convert_to_dict(centroids)  # 3x2 array of random centroids
 
-    return centroids
+def calculate_distances(centroids, data):
 
-def calculate_error(a,b):
     '''
-    Given two Numpy Arrays, calculates the root of the sum of squared errores.
+    Calculates the Distance between each centroid to all points in data .
+    `centroid`: coordinates of each centroid in dict format
+    `data`: dataset in dict format
     '''
-    error = np.square(np.sum((a-b)**2))
 
-    '''
-    Given two Numpy Arrays, calculates the Distance between two coordinates.
-    '''
-    # distance = nx.shortest_path_length(area_graph, (data.iloc[0][0], data.iloc[0][1]), (centroids.iloc[0][0], centroids.iloc[0][1]), weight="length")
+    result = {}
 
-    return error 
+    return result 
 
 def centroid_assignation(dset, centroids):
     '''
-    Given a dataframe `dset` and a set of `centroids`, we assign each
-    data point in `dset` to a centroid. 
+    Given a dataframe `dset` and a set of `centroids`, we assign each data point in `dset` to a centroid. 
     '''
-    k = centroids.shape[0]
-    n = dset.shape[0]
-    assignation = []
-    assign_errors = []
+    assignation = {}
 
-    for obs in range(n):
-        # Estimate error
-        all_errors = np.array([])
-        for centroid in range(k):
-            err = calculate_error(centroids.iloc[centroid, :], dset.iloc[obs,:])
-            all_errors = np.append(all_errors, err)
+    osm_distances = calculate_distances(centroids, dset)
+    distances = osm_distances["distance"]
 
-        # Get the nearest centroid and the error
-        nearest_centroid =  np.where(all_errors==np.amin(all_errors))[0].tolist()[0]
-        nearest_centroid_error = np.amin(all_errors)
+    for point in dset['distance']:
 
-        # Add values to corresponding lists
-        assignation.append(nearest_centroid)
-        assign_errors.append(nearest_centroid_error)
+        min_value = float('inf')  # initialize min_value to a very large number
+        min_key = int
+        for key, outer_dict in distances.items():
+            for key, value in outer_dict.items():
+                value = float(value)  # convert value to a float
+                if value < min_value:
+                    min_value = value
+                    min_key = key
 
-    return assignation, assign_errors
+        assignation[point] = [min_key, min_value] # para cada ponto guarda um array com o identificador do cluster mais perto e a sua distancia
 
-def kmeans(dset, k=3, tol=1e-4):
+    return assignation, osm_distances['converged']
+
+def recalculate_centroids(data, n_clusters):
+    centroids = {}
+    for i in range(n_clusters):
+        cluster = [k for k, v in data.items() if v == i] # get the data points in cluster i
+        # cluster = data[labels == i]  # get the data points in cluster i
+        centroids[i] = {}
+        for j in range(cluster.shape[1]):
+            centroids[i][j] = cluster[:, j].mean()  # calculate the mean of each column
+    return centroids
+
+def kmeans(dset, k=3):
     '''
     K-means implementationd for a 
     `dset`:  DataFrame with observations
-    `k`: number of clusters, default k=2
-    `tol`: tolerance=1E-4
+    `k`: number of clusters, default k=3
     '''
     # Let us work in a copy, so we don't mess the original
-    working_dset = data.copy()
+    working_dset = dset.copy()
+
     # We define some variables to hold the error, the 
     # stopping signal and a counter for the iterations
-    err = []
     goahead = True
     j = 0
-    count = 0
     
     # Step 2: Initiate clusters by defining centroids 
-    centroids = initialize_centroids(k, dset)
-
-    print(centroids)
+    centroids = initialize_centroids(k, working_dset)
 
     while(goahead):
         # Step 3 and 4 - Assign centroids and calculate error
-        working_dset['centroid'], j_err = centroid_assignation(working_dset, centroids) 
-        err.append(sum(j_err))
+        assigned_data, flag = centroid_assignation(working_dset, centroids) 
         
         # Step 5 - Update centroid position
-        centroids = working_dset.groupby('centroid').agg('mean').reset_index(drop = True)
+        centroids = recalculate_centroids(assigned_data, k)
 
         # Step 6 - Restart the iteration
         if j>0:
             # Is the error less than a tolerance (1E-4)
-            if err[j-1]-err[j]<=tol:
+            if flag:
                 goahead = False
         j+=1
 
-    working_dset['centroid'], j_err = centroid_assignation(working_dset, centroids)
-    centroids = working_dset.groupby('centroid').agg('mean').reset_index(drop = True)
-    return working_dset['centroid'], j_err, centroids
+    assigned_data, flag = centroid_assignation(working_dset, centroids)
+    centroids = recalculate_centroids(assigned_data, k)
+    return assigned_data, centroids
 
-data['centroid'], data['error'], centroids =  kmeans(data, 3)
-data.head()
+# data['centroid'], data['error'], centroids =  kmeans(data, 3)
+# data.head()
 # print(data.sort_values(by=['centroid']))
+
+# centroids = initialize_centroids(3, data)
+
+print(initialize_centroids(3, data))
