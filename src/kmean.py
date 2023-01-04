@@ -7,31 +7,38 @@ import os
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import json
+import requests
 
 with open('../files/step2.json', 'r') as f:
   data = json.load(f)
 
-def convert_to_array(data):
-    result = []
+def api_setup(data):
+    url = 'http://localhost:8001/setup'
 
-    for key in data:
-        result.append([data[key][0], data[key][1]])
+    x = requests.post(url, json = data)
 
-    return result
+    print(x.status_code)
+
 
 def convert_to_dict(data):
+    '''
+    Util function to converte an array to a dictionary
+    `data`: dataset in array format
+    '''
     result = {}
 
     for arr in range(len(data)):
-        result["{0}".format(arr)] = data[arr]
+        result["{0}".format(arr)] = data[arr].tolist()
 
     return result
 
 def initialize_centroids(k, data):
     '''
     Initialize k centroids randomly within the range of the data itself
+    `k`: number of clusters
+    `data`: dataset in dictionary format
     '''
-    # Initialize min_coords and max_coords to very large and small values, respectively
+    
     min_coords = [float('inf'), float('inf')]
     max_coords = [float('-inf'), float('-inf')]
 
@@ -45,93 +52,132 @@ def initialize_centroids(k, data):
 
     # Initialize k centroids randomly within the range of the data
     centroids = np.random.uniform(low=min_coords, high=max_coords, size=(k, len(min_coords)))
-    return convert_to_dict(centroids)  # 3x2 array of random centroids
 
-def calculate_distances(centroids, data):
+    return json.dumps(convert_to_dict(centroids))
+
+def calculate_distances(centroids):
 
     '''
     Calculates the Distance between each centroid to all points in data .
-    `centroid`: coordinates of each centroid in dict format
-    `data`: dataset in dict format
+    `centroid`: coordinates of each centroid in dictionary format
+    `data`: dataset in dictionary format
     '''
 
-    result = {}
+    url = "http://localhost:8001/distances"
 
-    return result 
+    payload = centroids
 
-def centroid_assignation(dset, centroids):
+    headers = {
+    'Content-Type': 'application/json'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+
+    return json.loads(response.text) 
+
+def centroid_assignation(data, centroids):
     '''
-    Given a dataframe `dset` and a set of `centroids`, we assign each data point in `dset` to a centroid. 
+    Given a dataframe `data` and a set of `centroids`, we assign each data point in `data` to a centroid. 
+    `data`: dataset in dictionary format
+    `centroids`: coordinates of each centroid in dictionary format
     '''
     assignation = {}
 
-    osm_distances = calculate_distances(centroids, dset)
-    distances = osm_distances["distance"]
+    # Calculate distances between each point to each centroid
+    osm_distances = calculate_distances(centroids) 
 
-    for point in dset['distance']:
+    print('OSM:')
+    print(osm_distances)
 
-        min_value = float('inf')  # initialize min_value to a very large number
+    distances = osm_distances.get("distances")
+
+    print('Distances:')
+    print(distances)
+
+    for key in data.keys(): # for each point
+        min_value = float('inf') 
         min_key = int
-        for key, outer_dict in distances.items():
-            for key, value in outer_dict.items():
-                value = float(value)  # convert value to a float
-                if value < min_value:
-                    min_value = value
-                    min_key = key
+        for centrois_key, outer_dict in distances.items(): # for each centroid, where outer_dict corresponds to an dictionary (point, distance)
+            value = float(outer_dict[key])
+            if value < min_value:
+                min_value = value
+                min_key = centrois_key
 
-        assignation[point] = [min_key, min_value] # para cada ponto guarda um array com o identificador do cluster mais perto e a sua distancia
+        # assignation[key] = [min_key, min_value] # each point is assigned an array with the closest cluster identifier and its respective distance
+        assignation[key] = min_key
+    
+    print('Centroids:')
+    print(centroids)
+    print('Assignation:')
+    print(assignation)
 
-    return assignation, osm_distances['converged']
+    return assignation
 
-def recalculate_centroids(data, n_clusters):
+def recalculate_centroids(assignation, data, n_clusters):
     centroids = {}
     for i in range(n_clusters):
-        cluster = [k for k, v in data.items() if v == i] # get the data points in cluster i
-        # cluster = data[labels == i]  # get the data points in cluster i
-        centroids[i] = {}
-        for j in range(cluster.shape[1]):
-            centroids[i][j] = cluster[:, j].mean()  # calculate the mean of each column
+        cluster = [k for k, v in assignation.items() if int(v) == i] # get the assignation points in cluster i
+
+        # Extract the coordinates from the data dictionary that belong to the cluster
+        coords = [data[key] for key in cluster]
+
+        # Calculate the mean values of the coordinates
+        mean_coords = np.mean(coords, axis=0)
+
+        centroids[i] = mean_coords.tolist()
+
     return centroids
 
-def kmeans(dset, k=3):
+def calculate_error(data1, data2):
+    # Calculate the error
+    error = 0
+    for key in data1.keys():
+        error += np.mean((data1[key] - data2[key])**2)
+
+    return error
+
+def kmeans(dset, k):
     '''
-    K-means implementationd for a 
+    K-means implementationd 
     `dset`:  DataFrame with observations
-    `k`: number of clusters, default k=3
+    `k`: number of clusters
     '''
-    # Let us work in a copy, so we don't mess the original
+
     working_dset = dset.copy()
 
-    # We define some variables to hold the error, the 
-    # stopping signal and a counter for the iterations
-    goahead = True
-    j = 0
+    goahead = True # stopping flag
+    j = 0 # counter for the iterations
     
-    # Step 2: Initiate clusters by defining centroids 
+    # Defining centroids 
     centroids = initialize_centroids(k, working_dset)
 
     while(goahead):
-        # Step 3 and 4 - Assign centroids and calculate error
-        assigned_data, flag = centroid_assignation(working_dset, centroids) 
-        
-        # Step 5 - Update centroid position
-        centroids = recalculate_centroids(assigned_data, k)
 
-        # Step 6 - Restart the iteration
+        # Assign centroids and calculate distances
+        assigned_data = centroid_assignation(working_dset, centroids) 
+        
+        # Update centroids position
+        new_centroids = recalculate_centroids(assigned_data, data, k)
+
+        # Restart the iteration
         if j>0:
-            # Is the error less than a tolerance (1E-4)
-            if flag:
+            # If centroids position already converged (position does't change re-alocate anymore)
+            # if calculate_error(new_centroids, centroids) > 0.5:
+            if j > 6:
+                print(calculate_error(new_centroids, centroids) > 0.5)
                 goahead = False
         j+=1
 
-    assigned_data, flag = centroid_assignation(working_dset, centroids)
-    centroids = recalculate_centroids(assigned_data, k)
+        centroids = new_centroids
+
+    # Assign centroids and calculate distances
+    assigned_data = centroid_assignation(working_dset, centroids)
+
+    # Update centroids position
+    centroids = recalculate_centroids(assigned_data, data, k)
+
     return assigned_data, centroids
 
-# data['centroid'], data['error'], centroids =  kmeans(data, 3)
-# data.head()
-# print(data.sort_values(by=['centroid']))
+# api_setup(data)
 
-# centroids = initialize_centroids(3, data)
-
-print(initialize_centroids(3, data))
+assigned_data, centroids = kmeans(data, 3)
