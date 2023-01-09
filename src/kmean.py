@@ -69,7 +69,7 @@ def calculate_distances(centroids):
 
     response = requests.request("POST", url, headers=headers, json=payload)
 
-    print(response.text)
+    # print(response.text)
 
     return json.loads(response.text)
 
@@ -127,10 +127,14 @@ def centroid_assignation(data, centroids):
     return assignation
 
 
-def recalculate_centroids(assignation, data, n_clusters):
+def recalculate_centroids(assignation, data, n_clusters, old_centroids):
     centroids = {}
     for i in range(n_clusters):
         cluster = [k for k, v in assignation.items() if int(v) == i]  # get the assignation points in cluster i
+
+        if len(cluster) == 0:
+            centroids[i] = old_centroids[str(i)]
+            continue
 
         # Extract the coordinates from the data dictionary that belong to the cluster
         coords = [data[key] for key in cluster]
@@ -173,7 +177,7 @@ def kmeans(dset, k):
         assigned_data = centroid_assignation(working_dset, centroids)
 
         # Update centroids position
-        new_centroids = recalculate_centroids(assigned_data, data, k)
+        new_centroids = recalculate_centroids(assigned_data, data, k, centroids)
         print()
 
         # Restart the iteration
@@ -195,11 +199,11 @@ def kmeans(dset, k):
     assigned_data = centroid_assignation(working_dset, centroids)
 
     # Update centroids position
-    centroids = recalculate_centroids(assigned_data, data, k)
+    centroids = recalculate_centroids(assigned_data, data, k, centroids)
 
     return assigned_data, centroids
 
 
 # api_setup(data)
 
-assigned_data, centroids = kmeans(data, 3)
+assigned_data, centroids = kmeans(data, 10)
