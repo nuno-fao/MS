@@ -39,14 +39,30 @@ fs.readFile("files/step2.json", 'utf8', (err, data) => {
 
     context.fillStyle = "#000000";
 
+
     for (const p in points) {
         const point = points[p]
+        console.log(point)
+
         context.fillRect(width - width * getR(point[1], rightPoint[0], leftPoint[0]), height - height * getR(point[0], rightPoint[1], leftPoint[1]), 10, 10);
     }
 
-    const buffer = canvas.toBuffer("image/png");
+    console.log("\n")
+    fs.readFile("files/centroids.json", 'utf8', (err, data) => {
+        const points = JSON.parse(data)
 
-    fs.createWriteStream("./files/points.png").write(buffer);
+        context.fillStyle = "#ff0000";
+
+        for (const p in points) {
+            const point = points[p]
+            console.log(point)
+            context.fillRect(width - width * getR(point[1], rightPoint[0], leftPoint[0]), height - height * getR(point[0], rightPoint[1], leftPoint[1]), 20, 20);
+        }
+
+        const buffer = canvas.toBuffer("image/png");
+
+        fs.createWriteStream("./files/points.png").write(buffer);
+    })
 })
 
 const getR = (v, s, b) => {

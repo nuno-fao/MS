@@ -28,7 +28,7 @@ def convert_to_dict(data):
     return result
 
 
-def initialize_centroids(k, data):
+def initialize_centroids_random(k, data):
     '''
     Initialize k centroids randomly within the range of the data itself
     `k`: number of clusters
@@ -50,6 +50,87 @@ def initialize_centroids(k, data):
     centroids = np.random.uniform(low=min_coords, high=max_coords, size=(k, len(min_coords)))
 
     return convert_to_dict(centroids)
+
+
+def initialize_centroids(w, h, stations, data):
+    min_coords = [float('inf'), float('inf')]
+    max_coords = [float('-inf'), float('-inf')]
+
+    # Find the minimum and maximum values for each coordinate
+    for row in data.values():
+        for i, coord in enumerate(row):
+            if coord < min_coords[i]:
+                min_coords[i] = coord
+            if coord > max_coords[i]:
+                max_coords[i] = coord
+
+    x_size = (max_coords[1] - min_coords[1]) / w
+    y_size = (max_coords[0] - min_coords[0]) / h
+
+    matrix = []
+
+    print(min_coords, max_coords)
+    for y in range(h):
+        matrix.append([])
+        for x in range(w):
+            matrix[y].append(0)
+    print(matrix)
+    for y in range(h):
+        for x in range(w):
+            for p in data:
+                if check_if_in((min_coords[0] + y * y_size, min_coords[1] + x * x_size),
+                               (min_coords[0] + (y + 1) * y_size, min_coords[1] + (x + 1) * x_size), data[p]):
+                    matrix[y][x] += 1
+    print(matrix)
+
+    numbers = []
+    for y in range(h):
+        for x in range(w):
+            for d in range(stations):
+                numbers.append((matrix[y][x] / (d + 1), (x, y)))
+
+    numbers.sort(reverse=True, key=order_districts)
+
+    stations_allocation = []
+    for y in range(h):
+        stations_allocation.append([])
+        for x in range(w):
+            stations_allocation[y].append(0)
+
+    for v in range(stations):
+        v = numbers[v]
+        stations_allocation[v[1][1]][v[1][0]] += 1
+    print(stations_allocation)
+
+    # Initialize k centroids randomly within the range of the data
+    # centroids = np.random.uniform(low=min_coords, high=max_coords, size=(k, len(min_coords)))
+
+    centroids = []
+    print()
+    for y in range(h):
+        for x in range(w):
+            tmp_centroids = np.random.uniform(low=(min_coords[0] + y * y_size, min_coords[1] + x * x_size),
+                                              high=(min_coords[0] + (y + 1) * y_size, min_coords[1] + (x + 1) * x_size),
+                                              size=(stations_allocation[y][x], len(min_coords)))
+            centroids += tmp_centroids.tolist()
+
+    result = {}
+
+    for arr in range(len(centroids)):
+        result["{0}".format(arr)] = centroids[arr]
+    return result
+
+
+def order_districts(e):
+    return e[0]
+
+
+def check_if_in(min, max, point):
+    # print(min)
+    # print(max)
+    # print(point)
+    # print()
+    return min[0] <= point[0] <= max[0] and min[1] <= point[1] <= max[1]
 
 
 def calculate_distances(centroids):
@@ -169,7 +250,8 @@ def kmeans(dset, k):
     j = 0  # counter for the iterations
 
     # Defining centroids 
-    centroids = initialize_centroids(k, working_dset)
+    # centroids = initialize_centroids_random(k, working_dset)
+    centroids = initialize_centroids(3, 2, k, working_dset)
 
     while (goahead):
 
@@ -206,4 +288,4 @@ def kmeans(dset, k):
 
 # api_setup(data)
 
-assigned_data, centroids = kmeans(data, 10)
+assigned_data, centroids = kmeans(data, 20)
