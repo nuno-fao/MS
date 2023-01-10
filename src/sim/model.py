@@ -46,37 +46,32 @@ class Model(mesa.Model):
         # Create agents
         self.w = width
         self.h = height
-        self.setup_cars(cars)
+        ids = self.setup_cars(cars)
 
         # for i in range(stations):
-        self.setup_stations(cars)
+        ids = self.setup_stations(ids)
 
-        sum = 0
+        self.setup_stops(ids)
+
+    def setup_stops(self, ids):
         for i in stop_points:
-            a = StopAgent(cars + 3 + sum, self)
+            a = StopAgent(ids, self)
             x = max(int((stop_points[i][1] - left) / abs(left - right) * self.w) - 1, 0)
             y = max(int((stop_points[i][0] - bottom) / abs(bottom - top) * self.h) - 1, 0)
             self.grid.place_agent(a, (x, y))
-            sum += 1
+            ids += 1
+        return ids
 
-    def setup_stations(self, cars):
-        a = StationAgent(cars, self, 2, 250)
-        self.schedule.add(a)
-        x, y = self.rand_point()
-        self.grid.place_agent(a, (x, y))
-        self.stations_list.append(a)
+    def setup_stations(self, ids):
+        for i in range(3):
+            a = StationAgent(ids, self, 2, 250)
+            self.schedule.add(a)
+            x, y = self.rand_point()
+            self.grid.place_agent(a, (x, y))
+            self.stations_list.append(a)
+            ids += 1
 
-        a = StationAgent(1 + cars, self, 5, 44)
-        self.schedule.add(a)
-        x, y = self.rand_point()
-        self.grid.place_agent(a, (x, y))
-        self.stations_list.append(a)
-
-        a = StationAgent(2 + cars, self, 1, 44)
-        self.schedule.add(a)
-        x, y = self.rand_point()
-        self.grid.place_agent(a, (x, y))
-        self.stations_list.append(a)
+        return ids
 
     def setup_cars(self, cars):
         for i in range(cars):
@@ -89,6 +84,7 @@ class Model(mesa.Model):
 
             x, y = self.rand_point()
             self.grid.place_agent(a, (x, y))
+        return cars
 
     def step(self):
         self.schedule.step()
