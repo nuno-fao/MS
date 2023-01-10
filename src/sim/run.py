@@ -22,9 +22,9 @@ def agent_portrayal(agent):
     return portrayal
 
 
-grid = mesa.visualization.CanvasGrid(agent_portrayal, 160, 80, 1600, 800)
+grid = mesa.visualization.CanvasGrid(agent_portrayal, 16, 8, 1600, 800)
 server = mesa.visualization.ModularServer(
-    Model, [grid], "Money Model", {"cars": 70, "stations": 3, "width": 160, "height": 80}
+    Model, [grid], "Money Model", {"cars": 70, "stations": 3, "width": 16, "height": 8}
 )
 
 server.port = 8521  # The default

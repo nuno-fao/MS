@@ -44,6 +44,8 @@ class Model(mesa.Model):
         self.stations_list = list()
         self.stop_points = stop_points
         # Create agents
+        self.w = width
+        self.h = height
         self.setup_cars(cars)
 
         # for i in range(stations):
@@ -52,27 +54,27 @@ class Model(mesa.Model):
         sum = 0
         for i in stop_points:
             a = StopAgent(cars + 3 + sum, self)
-            x = int((stop_points[i][1] - left) * 100 * 2)
-            y = int((stop_points[i][0] - bottom) * 100 * 2)
+            x = max(int((stop_points[i][1] - left) / abs(left - right) * self.w) - 1, 0)
+            y = max(int((stop_points[i][0] - bottom) / abs(bottom - top) * self.h) - 1, 0)
             self.grid.place_agent(a, (x, y))
             sum += 1
 
     def setup_stations(self, cars):
         a = StationAgent(cars, self, 2, 250)
         self.schedule.add(a)
-        x, y = self.rand_point(left, bottom)
+        x, y = self.rand_point()
         self.grid.place_agent(a, (x, y))
         self.stations_list.append(a)
 
         a = StationAgent(1 + cars, self, 5, 44)
         self.schedule.add(a)
-        x, y = self.rand_point(left, bottom)
+        x, y = self.rand_point()
         self.grid.place_agent(a, (x, y))
         self.stations_list.append(a)
 
         a = StationAgent(2 + cars, self, 1, 44)
         self.schedule.add(a)
-        x, y = self.rand_point(left, bottom)
+        x, y = self.rand_point()
         self.grid.place_agent(a, (x, y))
         self.stations_list.append(a)
 
@@ -85,15 +87,15 @@ class Model(mesa.Model):
             self.schedule.add(a)
             self.cars_list.append(a)
 
-            x, y = self.rand_point(left, bottom)
+            x, y = self.rand_point()
             self.grid.place_agent(a, (x, y))
 
     def step(self):
         self.schedule.step()
 
-    def rand_point(self, left_point, bottom_point):
+    def rand_point(self):
         p = self.random.choice(list(self.stop_points))
         p = self.stop_points[p]
-        x = int((p[1] - left_point) * 100 * 2)
-        y = int((p[0] - bottom_point) * 100 * 2)
+        x = max(int((p[1] - left) / abs(left - right) * self.w) - 1, 0)
+        y = max(int((p[0] - bottom) / abs(bottom - top) * self.h) - 1, 0)
         return x, y
