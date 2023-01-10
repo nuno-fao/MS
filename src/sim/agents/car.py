@@ -36,20 +36,29 @@ class CarAgent(mesa.Agent):
         self.path = self.path[1:]
         self.model.get_dist(self.current_point, self.path[0])
 
+    def go_charge(self):
+        self.is_moving = False
+        # self.is_preparing_charging = True
+        self.is_charging = True
+        self.charger = self.random.choice(self.model.stations_list)
+
+    def should_charge(self):
+        next_point_distance = self.model.get_dist(self.current_point, self.path[0])
+        next_point = self.model.stop_points[self.path[0]]
+        closest_charger_to_point =
+
     def step(self):
-        if self.dist_to_next == 0:
-            dis
-        # The agent's step will go here.
+        if self.dist_to_next <= 0.0:
+            self.dist_to_next = self.model.get_dist(self.current_point, self.path[0])
+            self.current_point = self.path[0]
+            self.path = self.path[1:]
+
         if self.is_moving:
             self.battery_energy -= 8.3 / 1000 * 60 * self.average_consume_per_100_km / 100
             self.km += 8.3 / 1000 * 60
-            if self.battery_energy <= 0.0:
-                self.is_moving = False
-                # self.is_preparing_charging = True
-                self.is_charging = True
-                self.charger = self.random.choice(self.model.stations_list)
-            print("CONSUMING :" + str(self.unique_id) + " " + str(self.battery_energy) + " " + str(self.km) + " " +
-                  str(self.max_battery))
+            self.dist_to_next -= 8.3 / 1000 * 60
+        # print("CONSUMING :" + str(self.unique_id) + " " + str(self.battery_energy) + " " + str(self.km) + " " +
+        #       str(self.max_battery))
         else:
             # if self.is_preparing_charging:
             #     if self.charging_delay >= 2:
@@ -70,8 +79,8 @@ class CarAgent(mesa.Agent):
                     self.charger.stop_charge(self.unique_id)
                     self.is_charging = False
                     self.is_moving = True
-                print("CHARGING :" + str(self.unique_id) + " " + str(self.battery_energy) + " " + str(self.km) + " " +
-                      str(self.max_battery))
+                # print("CHARGING :" + str(self.unique_id) + " " + str(self.battery_energy) + " " + str(self.km) + " " +
+                #       str(self.max_battery))
 
     @staticmethod
     def type():

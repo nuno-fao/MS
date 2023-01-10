@@ -1,5 +1,7 @@
 import json
 
+from geopy import distance
+
 from agents.car import *
 from agents.station import StationAgent
 from agents.stop import StopAgent
@@ -86,6 +88,12 @@ class Model(mesa.Model):
             self.grid.place_agent(a, (x, y))
         return cars
 
+    def closest_charge(self, coords):
+        closest = 10000000
+        for station in self.stations_list:
+            dist = distance.geodesic(coords, station)
+            if dist
+
     def step(self):
         self.schedule.step()
 
@@ -97,8 +105,6 @@ class Model(mesa.Model):
         return x, y
 
     def get_dist(self, p1, p2):
-        coords_1 = (52.2296756, 21.0122287)
-        coords_2 = (52.406374, 16.9251681)
-
-        print
-        geopy.distance.geodesic(coords_1, coords_2).km
+        coords_1 = self.stop_points[p1]
+        coords_2 = self.stop_points[p2]
+        return distance.geodesic(coords_1, coords_2).km
