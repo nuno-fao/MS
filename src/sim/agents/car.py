@@ -18,6 +18,8 @@ class CarAgent(mesa.Agent):
         self.is_preparing_charging = False
         self.charging_delay = 0
         self.charger = StationAgent
+        self.dist_to_next = 0
+        self.current_point = None
 
     def start_movement(self):
         self.is_moving = True
@@ -30,11 +32,16 @@ class CarAgent(mesa.Agent):
 
     def set_path(self, path):
         self.path = path
+        self.current_point = path[0]
+        self.path = self.path[1:]
+        self.model.get_dist(self.current_point, self.path[0])
 
     def step(self):
+        if self.dist_to_next == 0:
+            dis
         # The agent's step will go here.
         if self.is_moving:
-            self.battery_energy -= 8.3 / 1000 * self.average_consume_per_100_km / 100 * 60
+            self.battery_energy -= 8.3 / 1000 * 60 * self.average_consume_per_100_km / 100
             self.km += 8.3 / 1000 * 60
             if self.battery_energy <= 0.0:
                 self.is_moving = False

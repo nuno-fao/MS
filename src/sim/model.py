@@ -77,7 +77,7 @@ class Model(mesa.Model):
         for i in range(cars):
             a = self.random.choice(funcs)(i, self, self.random.randint(0, 100) / 100.0)
             idxs = self.random.sample(list(stop_points), 100)
-            path = [stop_points[p] for p in idxs]
+            path = [p for p in idxs]
             a.set_path(path)
             self.schedule.add(a)
             self.cars_list.append(a)
@@ -95,3 +95,10 @@ class Model(mesa.Model):
         x = max(int((p[1] - left) / abs(left - right) * self.w) - 1, 0)
         y = max(int((p[0] - bottom) / abs(bottom - top) * self.h) - 1, 0)
         return x, y
+
+    def get_dist(self, p1, p2):
+        coords_1 = (52.2296756, 21.0122287)
+        coords_2 = (52.406374, 16.9251681)
+
+        print
+        geopy.distance.geodesic(coords_1, coords_2).km
