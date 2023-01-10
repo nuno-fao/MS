@@ -55,7 +55,7 @@ class Model(mesa.Model):
         # for i in range(stations):
         ids = self.setup_stations(ids)
 
-        self.setup_stops(ids)
+        # self.setup_stops(ids)
 
         self.finished = set()
 

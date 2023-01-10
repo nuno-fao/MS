@@ -23,6 +23,8 @@ class CarAgent(mesa.Agent):
         self.bebepopo = False
         self.bebepopoStation = None
         self.finished = False
+        self.dist_per_minute = 8.3 / 1000 * 60
+        self.consume_per_minute = self.dist_per_minute * self.average_consume_per_100_km / 100
 
     def start_movement(self):
         self.is_moving = True
@@ -55,15 +57,21 @@ class CarAgent(mesa.Agent):
         else:
             return None, dist
 
+    def stop_charge(self):
+        self.battery_energy = self.max_battery
+        self.charger.stop_charge(self.unique_id)
+        self.is_charging = False
+        self.is_moving = True
+
     def step(self):
-        if len(self.path) == 0 and self.dist_to_next <= 0.0:
-            if self.finished:
-                return
-            else:
-                self.model.has_finished(self.unique_id)
-                self.finished = True
-                return
         if self.dist_to_next <= 0.0:
+            if len(self.path) == 0:
+                if self.finished:
+                    return
+                else:
+                    self.model.has_finished(self.unique_id)
+                    self.finished = True
+                    return
             if self.bebepopo:
                 # print(self.battery_energy)
                 self.go_charge(self.bebepopoStation)
@@ -80,33 +88,27 @@ class CarAgent(mesa.Agent):
                     self.path = self.path[1:]
 
         if self.is_moving:
-            self.battery_energy -= 8.3 / 1000 * 60 * self.average_consume_per_100_km / 100
-            self.km += 8.3 / 1000 * 60
-            self.dist_to_next -= 8.3 / 1000 * 60
+            self.battery_energy -= self.consume_per_minute
+            self.km += self.dist_per_minute
+            self.dist_to_next -= self.dist_per_minute
             # print("CONSUMING :" + str(self.unique_id) + " " + str(self.battery_energy) + " " + str(self.km) + " " +
             #       str(self.max_battery))
-        else:
-            # if self.is_preparing_charging:
-            #     if self.charging_delay >= 2:
-            #         self.is_preparing_charging = False
-            #         self.is_charging = True
-            #         self.charger.start_charge(self)
-            #         self.charging_delay = 0
-            #     else:
-            #         self.charging_delay += 1
-            # elif self.is_charging and self.battery_energy >= self.max_battery:
-            #     self.battery_energy = self.max_battery
-            #     self.charger.stop_charge(self.unique_id)
-            #     self.is_charging = False
-            #     self.is_moving = True
-            if self.is_charging:
-                if self.battery_energy >= self.max_battery:
-                    self.battery_energy = self.max_battery
-                    self.charger.stop_charge(self.unique_id)
-                    self.is_charging = False
-                    self.is_moving = True
-                # print("CHARGING :" + str(self.unique_id) + " " + str(self.battery_energy) + " " + str(self.km) + " " +
-                #       str(self.max_battery))
+        # else:
+        # if self.is_preparing_charging:
+        #     if self.charging_delay >= 2:
+        #         self.is_preparing_charging = False
+        #         self.is_charging = True
+        #         self.charger.start_charge(self)
+        #         self.charging_delay = 0
+        #     else:
+        #         self.charging_delay += 1
+        # elif self.is_charging and self.battery_energy >= self.max_battery:
+        #     self.battery_energy = self.max_battery
+        #     self.charger.stop_charge(self.unique_id)
+        #     self.is_charging = False
+        #     self.is_moving = True
+        # print("CHARGING :" + str(self.unique_id) + " " + str(self.battery_energy) + " " + str(self.km) + " " +
+        #       str(self.max_battery))
 
     @staticmethod
     def type():

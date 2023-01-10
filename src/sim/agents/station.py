@@ -7,7 +7,7 @@ class StationAgent(mesa.Agent):
     def __init__(self, unique_id, model, spots, power, coords):
         super().__init__(unique_id, model)
         self.spots = spots  # battery in W.h
-        self.power = power
+        self.power = power / 60
         self.using = list()
         self.waiting = list()
         self.coords = coords
@@ -25,7 +25,9 @@ class StationAgent(mesa.Agent):
 
     def step(self):
         for car in self.using:
-            car.charge(self.power / 60)
+            car.charge(self.power)
+            if car.battery_energy >= car.max_battery:
+                car.stop_charge()
 
     @staticmethod
     def type():
