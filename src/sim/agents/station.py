@@ -4,12 +4,13 @@ import mesa
 class StationAgent(mesa.Agent):
     """An agent with fixed initial wealth."""
 
-    def __init__(self, unique_id, model, spots, power):
+    def __init__(self, unique_id, model, spots, power, coords):
         super().__init__(unique_id, model)
         self.spots = spots  # battery in W.h
         self.power = power
         self.using = list()
         self.waiting = list()
+        self.coords = coords
 
     def start_charge(self, car):
         if len(self.using) < self.spots:

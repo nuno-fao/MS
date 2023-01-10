@@ -65,13 +65,17 @@ class Model(mesa.Model):
         return ids
 
     def setup_stations(self, ids):
-        for i in range(3):
-            a = StationAgent(ids, self, 2, 250)
-            self.schedule.add(a)
-            x, y = self.rand_point()
-            self.grid.place_agent(a, (x, y))
-            self.stations_list.append(a)
-            ids += 1
+        with open("../../files/centroids.json", "r") as read_file:
+            stations = json.load(read_file)
+            for station in stations:
+                a = StationAgent(ids, self, 2, 250, stations[station])
+                self.schedule.add(a)
+                x = max(int((stations[station][1] - left) / abs(left - right) * self.w) - 1, 0)
+                y = max(int((stations[station][0] - bottom) / abs(bottom - top) * self.h) - 2, 0)
+                print(x, y)
+                self.grid.place_agent(a, (x, y))
+                self.stations_list.append(a)
+                ids += 1
 
         return ids
 
@@ -90,9 +94,13 @@ class Model(mesa.Model):
 
     def closest_charge(self, coords):
         closest = 10000000
+        st = None
         for station in self.stations_list:
-            dist = distance.geodesic(coords, station)
-            if dist
+            dist = distance.geodesic(coords, station.coords)
+            if dist < closest:
+                st = station
+                closest = dist
+        return st, closest
 
     def step(self):
         self.schedule.step()

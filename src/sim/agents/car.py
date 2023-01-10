@@ -45,7 +45,8 @@ class CarAgent(mesa.Agent):
     def should_charge(self):
         next_point_distance = self.model.get_dist(self.current_point, self.path[0])
         next_point = self.model.stop_points[self.path[0]]
-        closest_charger_to_point =
+        charger, dist = self.model.closest_charge(next_point)
+        print(charger, dist)
 
     def step(self):
         if self.dist_to_next <= 0.0:
