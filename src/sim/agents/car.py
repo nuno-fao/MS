@@ -2,7 +2,6 @@ import mesa
 
 from agents.station import StationAgent
 
-
 class CarAgent(mesa.Agent):
     """An agent with fixed initial wealth."""
 
@@ -20,11 +19,12 @@ class CarAgent(mesa.Agent):
         self.charger = StationAgent
         self.dist_to_next = 0
         self.current_point = None
-        self.bebepopo = False
-        self.bebepopoStation = None
+        self.needToCharge = False
+        self.closestStation = None
         self.finished = False
         self.dist_per_minute = 8.3 / 1000 * 60
         self.consume_per_minute = self.dist_per_minute * self.average_consume_per_100_km / 100
+        self.logs = []
 
     def start_movement(self):
         self.is_moving = True
@@ -64,25 +64,33 @@ class CarAgent(mesa.Agent):
         self.is_moving = True
 
     def step(self):
+        
         if self.dist_to_next <= 0.0:
+            self.logs.append("Arrived at destination")
             if len(self.path) == 0:
+                self.logs.append("Finished service")
                 if self.finished:
                     return
                 else:
                     self.model.has_finished(self.unique_id)
                     self.finished = True
                     return
-            if self.bebepopo:
-                # print(self.battery_energy)
-                self.go_charge(self.bebepopoStation)
-                self.bebepopo = False
+            if self.needToCharge:
+                # print(self.battery_energy) 
+                self.logs.append("Charging" + str(self.closestStation.unique_id) )
+                self.go_charge(self.closestStation)
+                self.needToCharge = False
+            elif self.is_charging:
+                return
             else:
                 station, dist = self.should_charge()
                 if station is not None:
-                    self.bebepopoStation = station
+                    self.logs.append("Needs to charge, going to closest station" )
+                    self.closestStation = station
                     self.dist_to_next = dist
-                    self.bebepopo = True
+                    self.needToCharge = True
                 else:
+                    self.logs.append("Going to next point" )
                     self.dist_to_next = self.model.get_dist(self.current_point, self.path[0])
                     self.current_point = self.path[0]
                     self.path = self.path[1:]
