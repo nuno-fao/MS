@@ -3,6 +3,7 @@ import json
 from agents.car import *
 from agents.station import StationAgent
 from agents.stop import StopAgent
+from geopy import distance
 
 funcs = [new_tesla_model_s,
          new_tesla_model_3,
@@ -63,13 +64,17 @@ class Model(mesa.Model):
         return ids
 
     def setup_stations(self, ids):
-        for i in range(3):
-            a = StationAgent(ids, self, 2, 250)
-            self.schedule.add(a)
-            x, y = self.rand_point()
-            self.grid.place_agent(a, (x, y))
-            self.stations_list.append(a)
-            ids += 1
+        with open("../../files/centroids.json", "r") as read_file:
+            stations = json.load(read_file)
+            for station in stations:
+                a = StationAgent(ids, self, 2, 250)
+                self.schedule.add(a)
+                x = max(int((stations[station][1] - left) / abs(left - right) * self.w) - 1, 0)
+                y = max(int((stations[station][0] - bottom) / abs(bottom - top) * self.h) - 2, 0)
+                print(x,y)
+                self.grid.place_agent(a, (x, y))
+                self.stations_list.append(a)
+                ids += 1
 
         return ids
 
@@ -97,8 +102,6 @@ class Model(mesa.Model):
         return x, y
 
     def get_dist(self, p1, p2):
-        coords_1 = (52.2296756, 21.0122287)
-        coords_2 = (52.406374, 16.9251681)
-
-        print
-        geopy.distance.geodesic(coords_1, coords_2).km
+        coords_1 = self.stop_points[p1]
+        coords_2 = self.stop_points[p2]
+        return distance.geodesic(coords_1, coords_2).km / 1000.0
