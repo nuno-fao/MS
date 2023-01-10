@@ -32,7 +32,9 @@ for idx in stop_points:
         left = point[1]
     if point[1] > right:
         right = point[1]
-print((right - left), (top - bottom))
+
+
+# print((right - left), (top - bottom))
 
 
 class Model(mesa.Model):
@@ -55,6 +57,8 @@ class Model(mesa.Model):
 
         self.setup_stops(ids)
 
+        self.finished = set()
+
     def setup_stops(self, ids):
         for i in stop_points:
             a = StopAgent(ids, self)
@@ -72,12 +76,15 @@ class Model(mesa.Model):
                 self.schedule.add(a)
                 x = max(int((stations[station][1] - left) / abs(left - right) * self.w) - 1, 0)
                 y = max(int((stations[station][0] - bottom) / abs(bottom - top) * self.h) - 2, 0)
-                print(x, y)
+                # print(x, y)
                 self.grid.place_agent(a, (x, y))
                 self.stations_list.append(a)
                 ids += 1
 
         return ids
+
+    def has_finished(self, uid):
+        self.finished.add(uid)
 
     def setup_cars(self, cars):
         for i in range(cars):
@@ -96,7 +103,7 @@ class Model(mesa.Model):
         closest = 10000000
         st = None
         for station in self.stations_list:
-            dist = distance.geodesic(coords, station.coords)
+            dist = distance.geodesic(coords, station.coords).km
             if dist < closest:
                 st = station
                 closest = dist
