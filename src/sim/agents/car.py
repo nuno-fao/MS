@@ -38,26 +38,33 @@ class CarAgent(mesa.Agent):
             self.km += 8.3 / 1000 * 60
             if self.battery_energy <= 0.0:
                 self.is_moving = False
-                self.is_preparing_charging = True
+                # self.is_preparing_charging = True
+                self.is_charging = True
                 self.charger = self.random.choice(self.model.stations_list)
             print("CONSUMING :" + str(self.unique_id) + " " + str(self.battery_energy) + " " + str(self.km) + " " +
                   str(self.max_battery))
         else:
-            if self.is_preparing_charging:
-                if self.charging_delay >= 2:
-                    self.is_preparing_charging = False
-                    self.is_charging = True
-                    self.charger.start_charge(self)
-                    self.charging_delay = 0
-                else:
-                    self.charging_delay += 1
-            elif self.is_charging and self.battery_energy >= self.max_battery:
-                self.battery_energy = self.max_battery
-                self.charger.stop_charge(self.unique_id)
-                self.is_charging = False
-                self.is_moving = True
-            print("CHARGING :" + str(self.unique_id) + " " + str(self.battery_energy) + " " + str(self.km) + " " +
-                  str(self.max_battery))
+            # if self.is_preparing_charging:
+            #     if self.charging_delay >= 2:
+            #         self.is_preparing_charging = False
+            #         self.is_charging = True
+            #         self.charger.start_charge(self)
+            #         self.charging_delay = 0
+            #     else:
+            #         self.charging_delay += 1
+            # elif self.is_charging and self.battery_energy >= self.max_battery:
+            #     self.battery_energy = self.max_battery
+            #     self.charger.stop_charge(self.unique_id)
+            #     self.is_charging = False
+            #     self.is_moving = True
+            if self.is_charging:
+                if self.battery_energy >= self.max_battery:
+                    self.battery_energy = self.max_battery
+                    self.charger.stop_charge(self.unique_id)
+                    self.is_charging = False
+                    self.is_moving = True
+                print("CHARGING :" + str(self.unique_id) + " " + str(self.battery_energy) + " " + str(self.km) + " " +
+                      str(self.max_battery))
 
     @staticmethod
     def type():
