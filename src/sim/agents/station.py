@@ -1,3 +1,14 @@
+
+percentage_cut = 0.5
+distance_cut = 50
+time_cut = 20
+
+number_of_cars_to_cut = 4
+
+shall_cut = True
+shall_order = True
+
+
 class StationAgent():
     """An agent with fixed initial wealth."""
 
@@ -10,14 +21,33 @@ class StationAgent():
         self.using = list()
         self.waiting = list()
         self.coords = coords
+        
         self.waitTimePerCar = {}
         self.occupancyPerStep = []
+        
+        self.order_waiting = self.order_waiting_fastest_first
+        self.cut_car = self.cut_on_time
+
+        self.ignore_limit = set()
+        self.time = dict()
+
+    def order_waiting_fastest_first(self, car):
+        # print(car.max_battery - car.battery_energy, self.power,
+        #       (car.max_battery - car.battery_energy) / (self.power * 60))
+        return (car.max_battery - car.battery_energy) / (self.power * 60)
+        
 
     def start_charge(self, car):
         if len(self.using) < self.spots:
             self.using.append(car)
         else:
             self.waiting.append(car)
+        if shall_order:
+            self.waiting.sort(key=self.order_waiting)
+        if shall_cut:
+            if (car.battery_energy / car.max_battery) >= percentage_cut:
+                self.ignore_limit.add(car.unique_id)
+            self.time[car.unique_id] = 0
 
         if car.unique_id in self.waitTimePerCar.keys():
             self.waitTimePerCar[car.unique_id].append(0)
@@ -28,6 +58,10 @@ class StationAgent():
         self.using = [x for x in self.using if not x.unique_id == unique_id]
         if len(self.waiting) > 0:
             self.using.append(self.waiting.pop(0))
+        if shall_cut and unique_id in self.ignore_limit:
+            self.ignore_limit.remove(unique_id)
+        if shall_cut and unique_id in self.time.keys():
+            self.time.pop(unique_id)
 
     def step(self):
         self.occupancyPerStep.append((len(self.using) + len(self.waiting)) * 100 / self.spots)
@@ -36,9 +70,24 @@ class StationAgent():
             self.waitTimePerCar[car.unique_id][-1] += 1
 
         for car in self.using:
+            self.time[car.unique_id] += 1
             car.charge(self.power)
             if car.battery_energy >= car.max_battery:
                 car.stop_charge()
+            elif shall_cut and self.cut_car(car):
+                car.stop_charge()
+
+    def cut_on_percentage(self, car):
+        return car.unique_id not in self.ignore_limit and len(self.waiting) >= number_of_cars_to_cut and \
+            (car.battery_energy / car.max_battery) >= percentage_cut
+
+    def cut_on_time(self, car):
+        return len(self.waiting) >= number_of_cars_to_cut and self.time[car.unique_id] >= time_cut
+
+    def cut_on_distance(self, car):
+        return car.unique_id not in self.ignore_limit and \
+            len(self.waiting) >= number_of_cars_to_cut and (
+                    car.battery_energy / car.average_consume_per_100_km * 100) >= distance_cut
 
     @staticmethod
     def type():

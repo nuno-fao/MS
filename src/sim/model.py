@@ -11,7 +11,6 @@ funcs = [new_tesla_model_s,
          new_tesla_model_y,
          new_chevrolet_bolt,
          new_mustang_mach_e,
-         new_renault_twizy,
          new_renault_zoe]
 
 # funcs = [new_renault_twizy]
