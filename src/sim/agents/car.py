@@ -1,6 +1,8 @@
-import mesa
+import json
 
+import mesa
 from agents.station import StationAgent
+
 
 class CarAgent(mesa.Agent):
     """An agent with fixed initial wealth."""
@@ -37,7 +39,7 @@ class CarAgent(mesa.Agent):
 
     def set_path(self, path):
         self.path = path
-        self.current_point = path[0]
+        self.current_point = self.model.stop_points[path[0]]
         self.path = self.path[1:]
         self.model.get_dist(self.current_point, self.path[0])
 
@@ -50,55 +52,89 @@ class CarAgent(mesa.Agent):
 
     def should_charge(self):
         next_point_distance = self.model.get_dist(self.current_point, self.path[0])
+        if len(self.path) == 1 and next_point_distance <= self.battery_energy / self.average_consume_per_100_km * 100:
+            return None, next_point_distance
+        if len(self.path) == 0:
+            return None, 0
+
         next_point = self.model.stop_points[self.path[0]]
-        charger, dist = self.model.closest_charge(next_point)
-        if next_point_distance + dist > self.battery_energy / self.average_consume_per_100_km * 100:
-            return charger, dist
+        naive_charger, naive_dist = self.model.closest_charge(next_point)
+
+        naive_distance = (next_point_distance + naive_dist) * 1.05
+
+        if naive_distance > self.battery_energy / self.average_consume_per_100_km * 100:
+            smart_charge, smart_distance = self.model.closest_charger_with_initial_point(
+                self.current_point,
+                self.model.get_stop_coords(self.path[0]), self)
+            if smart_charge is not None:
+                return smart_charge, smart_distance
+            with open("unfinished.json", "w") as outfile:
+                car_logs = {}
+                if self.finished == False:
+                    car_logs[self.unique_id] = self.logs
+                json.dump(car_logs, outfile)
+            raise Exception("Cant get to next point")
         else:
-            return None, dist
+            return None, naive_dist
 
     def stop_charge(self):
         self.battery_energy = self.max_battery
         self.charger.stop_charge(self.unique_id)
         self.is_charging = False
         self.is_moving = True
+        self.handle_departure()
 
     def step(self):
-        
+        if self.is_charging:
+            return
         if self.dist_to_next <= 0.0:
-            self.logs.append("Arrived at destination")
+            self.battery_energy -= self.dist_to_next * self.average_consume_per_100_km / 100
+            self.dist_to_next = 0.0
             if len(self.path) == 0:
-                self.logs.append("Finished service")
-                if self.finished:
-                    return
-                else:
-                    self.model.has_finished(self.unique_id)
-                    self.finished = True
-                    return
+                return self.check_finished()
             if self.needToCharge:
-                # print(self.battery_energy) 
-                self.logs.append("Charging" + str(self.closestStation.unique_id) )
                 self.go_charge(self.closestStation)
+                self.current_point = self.closestStation.coords
+                self.logs.append(
+                    "Arrived at station " + str(self.max_battery) + " " + str(len(self.path)) + " " + str(
+                        self.current_point))
+                self.logs.append("Charging " + str(self.closestStation.unique_id) + " " + str(self.current_point))
                 self.needToCharge = False
-            elif self.is_charging:
-                return
             else:
-                station, dist = self.should_charge()
-                if station is not None:
-                    self.logs.append("Needs to charge, going to closest station" )
-                    self.closestStation = station
-                    self.dist_to_next = dist
-                    self.needToCharge = True
-                else:
-                    self.logs.append("Going to next point" )
-                    self.dist_to_next = self.model.get_dist(self.current_point, self.path[0])
-                    self.current_point = self.path[0]
-                    self.path = self.path[1:]
+                self.current_point = self.model.stop_points[self.path[0]]
+                self.path = self.path[1:]
+                self.logs.append(
+                    "Arrived at destination " + str(self.max_battery) + " " + str(len(self.path)) + " " + str(
+                        self.current_point))
+                if len(self.path) == 0:
+                    return self.check_finished()
+                self.handle_departure()
 
         if self.is_moving:
             self.battery_energy -= self.consume_per_minute
             self.km += self.dist_per_minute
             self.dist_to_next -= self.dist_per_minute
+
+    def handle_departure(self):
+        station, dist = self.should_charge()
+        if station is not None:
+            self.logs.append("Needs to charge, going to closest station")
+            self.closestStation = station
+            self.dist_to_next = dist
+            self.needToCharge = True
+        else:
+            self.dist_to_next = self.model.get_dist(self.current_point, self.path[0])
+            self.logs.append("Going to next point" + " " + str(self.current_point) + " to " +
+                             str(self.model.stop_points[self.path[0]]))
+
+    def check_finished(self):
+        if self.finished:
+            return
+        else:
+            self.logs.append("Finished service")
+            self.model.has_finished(self.unique_id)
+            self.finished = True
+            return
 
     @staticmethod
     def type():
