@@ -1,6 +1,6 @@
 import random
 
-from geopy import distance
+import geopy.distance
 
 from agents.car import *
 from agents.station import StationAgent
@@ -17,6 +17,9 @@ funcs = [new_tesla_model_s,
 
 with open("../../files/step2.json", "r") as read_file:
     stop_points = json.load(read_file)
+
+with open("../../files/step3.json", "r") as read_file:
+    distances_map = json.load(read_file)
 
 left = 1000
 right = -1000
@@ -74,9 +77,13 @@ class Model():
 
     def setup_stations(self, ids):
         with open("../../files/centroids.json", "r") as read_file:
-            stations = json.load(read_file)
+            centroids_map = json.load(read_file)
+            local_distances_map = centroids_map["distances"]
+            for c in local_distances_map:
+                distances_map["s" + str(c)] = local_distances_map[c]
+            stations = centroids_map["points"]
             for station in stations:
-                a = StationAgent(ids, self, 2, 250, stations[station])
+                a = StationAgent(ids, self, 2, 250, stations[station], "s" + str(station))
                 self.schedule.append(a)
                 x = max(int((stations[station][1] - left) / abs(left - right) * self.w) - 1, 0)
                 y = max(int((stations[station][0] - bottom) / abs(bottom - top) * self.h) - 2, 0)
@@ -205,17 +212,27 @@ class Model():
             # self.grid.place_agent(a, (x, y))
         return cars
 
-    def closest_charge(self, coords):
+    def get_real_distance(self, id1, id2):
+        try:
+            return distances_map[id1][id2] / 1000.0
+        except:
+            try:
+                return distances_map[id2][id1] / 1000.0
+            except:
+                print(id1, id2)
+                return geopy.distance.geodesic(self.stations_list[id1].coords, self.stations_list[id2].coords).km
+
+    def closest_charge(self, id):
         closest = 10000000
         st = None
         for station in self.stations_list:
-            dist = distance.geodesic(coords, station.coords).km
+            dist = self.get_real_distance(id, station.ref_id)
             if dist < closest:
                 st = station
                 closest = dist
         return st, closest
 
-    def closest_charger_with_initial_point(self, coords1, coords2, car):
+    def closest_charger_with_initial_point(self, id1, id2, car):
         # if (coords1[0] == -22.887983194586603 and coords2[0] == -22.795666862537107) or (
         #         (coords2[0] == -22.887983194586603 and coords1[0] == -22.795666862537107)):
         #     print("okk")
@@ -223,8 +240,8 @@ class Model():
         st = None
         out_dist1 = 1000000000
         for station in self.stations_list:
-            dist1 = distance.geodesic(coords1, station.coords).km
-            dist2 = distance.geodesic(station.coords, coords2).km
+            dist1 = self.get_real_distance(id1, station.ref_id)
+            dist2 = self.get_real_distance(station.ref_id, id2)
             if dist1 > (car.battery_energy / car.average_consume_per_100_km * 100) or dist2 > (
                     car.max_battery / car.average_consume_per_100_km * 100):
                 continue
@@ -234,8 +251,8 @@ class Model():
                 out_dist1 = dist1
         if st is None:
             for station in self.stations_list:
-                dist1 = distance.geodesic(coords1, station.coords).km
-                dist2 = distance.geodesic(station.coords, coords2).km
+                dist1 = self.get_real_distance(id1, station.ref_id)
+                dist2 = self.get_real_distance(station.ref_id, id2)
                 if dist1 > (car.battery_energy / car.average_consume_per_100_km * 100):
                     continue
                 if dist1 + dist2 < closest:
@@ -272,8 +289,3 @@ class Model():
 
     def get_stop_coords(self, p):
         return self.stop_points[p]
-
-    def get_dist(self, p1, p2):
-        coords_1 = p1
-        coords_2 = self.stop_points[p2]
-        return distance.geodesic(coords_1, coords_2).km

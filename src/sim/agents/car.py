@@ -41,9 +41,9 @@ class CarAgent():
     def set_path(self, path):
         self.logs.append(path)
         self.path = path
-        self.current_point = self.model.stop_points[path[0]]
+        self.current_point = path[0]
         self.path = self.path[1:]
-        self.model.get_dist(self.current_point, self.path[0])
+        self.model.get_real_distance(self.current_point, self.path[0])
 
     def go_charge(self, station):
         self.is_moving = False
@@ -53,13 +53,13 @@ class CarAgent():
         self.charger.start_charge(self)
 
     def should_charge(self):
-        next_point_distance = self.model.get_dist(self.current_point, self.path[0])
+        next_point_distance = self.model.get_real_distance(self.current_point, self.path[0])
         if len(self.path) == 1 and next_point_distance <= self.battery_energy / self.average_consume_per_100_km * 100:
             return None, next_point_distance
         if len(self.path) == 0:
             return None, 0
 
-        next_point = self.model.stop_points[self.path[0]]
+        next_point = self.path[0]
         naive_charger, naive_dist = self.model.closest_charge(next_point)
 
         naive_distance = (next_point_distance + naive_dist) * 1.05
@@ -67,7 +67,7 @@ class CarAgent():
         if naive_distance > self.battery_energy / self.average_consume_per_100_km * 100:
             smart_charge, smart_distance = self.model.closest_charger_with_initial_point(
                 self.current_point,
-                self.model.get_stop_coords(self.path[0]), self)
+                self.path[0], self)
             if smart_charge is not None:
                 return smart_charge, smart_distance
             with open("unfinished" + str(self.unique_id) + ".json", "w") as outfile:
@@ -94,11 +94,11 @@ class CarAgent():
                 return self.check_finished()
             if self.needToCharge:
                 self.go_charge(self.closestStation)
-                self.current_point = self.closestStation.coords
-                self.logs.append({"Station": self.current_point})
+                self.current_point = self.closestStation.ref_id
+                self.logs.append({"Station": [self.current_point, len(self.closestStation.waiting)]})
                 self.needToCharge = False
             else:
-                self.current_point = self.model.stop_points[self.path[0]]
+                self.current_point = self.path[0]
                 self.path = self.path[1:]
                 self.logs.append({"Current": self.current_point})
                 if len(self.path) == 0:
@@ -121,8 +121,9 @@ class CarAgent():
             self.needToCharge = True
             self.logs.append({"Next": self.model.stop_points[self.path[0]]})
         else:
-            self.dist_to_next = self.model.get_dist(self.current_point, self.path[0])
-            self.logs.append({"Travel": [self.current_point, self.model.stop_points[self.path[0]]]})
+            self.dist_to_next = self.model.get_real_distance(self.current_point, self.path[0])
+            self.logs.append(
+                {"Travel": [self.current_point, self.model.stop_points[self.path[0]], self.dist_to_next]})
 
     def check_finished(self):
         if self.finished:

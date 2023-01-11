@@ -1,4 +1,3 @@
-
 percentage_cut = 0.5
 distance_cut = 50
 time_cut = 20
@@ -12,7 +11,7 @@ shall_order = True
 class StationAgent():
     """An agent with fixed initial wealth."""
 
-    def __init__(self, unique_id, model, spots, power, coords):
+    def __init__(self, unique_id, model, spots, power, coords, ref_id):
 
         self.unique_id = unique_id
         self.model = model
@@ -21,10 +20,11 @@ class StationAgent():
         self.using = list()
         self.waiting = list()
         self.coords = coords
-        
+        self.ref_id = ref_id
+
         self.waitTimePerCar = {}
         self.occupancyPerStep = []
-        
+
         self.order_waiting = self.order_waiting_fastest_first
         self.cut_car = self.cut_on_time
 
@@ -35,7 +35,6 @@ class StationAgent():
         # print(car.max_battery - car.battery_energy, self.power,
         #       (car.max_battery - car.battery_energy) / (self.power * 60))
         return (car.max_battery - car.battery_energy) / (self.power * 60)
-        
 
     def start_charge(self, car):
         if len(self.using) < self.spots:

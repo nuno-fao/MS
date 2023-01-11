@@ -22,7 +22,8 @@ with open("logs.json", "w") as outfile:
     car_logs = {}
     for car in model.cars_list:
         car_logs[car.unique_id] = [car.logs, car.path]
-    json.dump(car_logs, outfile)
+        json.dump(car_logs, outfile)
+        break
 
 with open("car_distances.json", "w") as outfile:
     final = {}
