@@ -2,7 +2,7 @@ import json
 
 from model import Model
 
-cars = 100
+cars = 1
 model = Model(cars, 3, 16, 8)
 i = 0
 while len(model.finished) < cars:
