@@ -1,14 +1,14 @@
 import json
 
-import mesa
 from agents.station import StationAgent
 
 
-class CarAgent(mesa.Agent):
+class CarAgent():
     """An agent with fixed initial wealth."""
 
     def __init__(self, unique_id, model, battery_energy, max_battery, average_consume_per_100_km):
-        super().__init__(unique_id, model)
+        self.unique_id = unique_id
+        self.model = model
         self.path = None
         self.battery_energy = battery_energy  # battery in W.h
         self.max_battery = max_battery
@@ -26,6 +26,7 @@ class CarAgent(mesa.Agent):
         self.finished = False
         self.dist_per_minute = 8.3 / 1000 * 60
         self.consume_per_minute = self.dist_per_minute * self.average_consume_per_100_km / 100
+        self.kmToCharge = 0.0
         self.logs = []
 
     def start_movement(self):
@@ -108,6 +109,8 @@ class CarAgent(mesa.Agent):
             # self.logs.append({"Moving": self.dist_to_next})
             self.battery_energy -= self.consume_per_minute
             self.km += self.dist_per_minute
+            if self.needToCharge:
+                self.kmToCharge += self.dist_per_minute
             self.dist_to_next -= self.dist_per_minute
 
     def handle_departure(self):

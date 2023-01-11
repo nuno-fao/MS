@@ -1,4 +1,3 @@
-import mesa
 
 percentage_cut = 0.5
 distance_cut = 50
@@ -10,16 +9,22 @@ shall_cut = True
 shall_order = True
 
 
-class StationAgent(mesa.Agent):
+class StationAgent():
     """An agent with fixed initial wealth."""
 
     def __init__(self, unique_id, model, spots, power, coords):
-        super().__init__(unique_id, model)
+
+        self.unique_id = unique_id
+        self.model = model
         self.spots = spots  # battery in W.h
         self.power = power / 60
         self.using = list()
         self.waiting = list()
         self.coords = coords
+        
+        self.waitTimePerCar = {}
+        self.occupancyPerStep = []
+        
         self.order_waiting = self.order_waiting_fastest_first
         self.cut_car = self.cut_on_time
 
@@ -30,6 +35,7 @@ class StationAgent(mesa.Agent):
         # print(car.max_battery - car.battery_energy, self.power,
         #       (car.max_battery - car.battery_energy) / (self.power * 60))
         return (car.max_battery - car.battery_energy) / (self.power * 60)
+        
 
     def start_charge(self, car):
         if len(self.using) < self.spots:
@@ -43,6 +49,11 @@ class StationAgent(mesa.Agent):
                 self.ignore_limit.add(car.unique_id)
             self.time[car.unique_id] = 0
 
+        if car.unique_id in self.waitTimePerCar.keys():
+            self.waitTimePerCar[car.unique_id].append(0)
+        else:
+            self.waitTimePerCar[car.unique_id] = [0]
+
     def stop_charge(self, unique_id):
         self.using = [x for x in self.using if not x.unique_id == unique_id]
         if len(self.waiting) > 0:
@@ -53,6 +64,11 @@ class StationAgent(mesa.Agent):
             self.time.pop(unique_id)
 
     def step(self):
+        self.occupancyPerStep.append((len(self.using) + len(self.waiting)) * 100 / self.spots)
+
+        for car in self.waiting:
+            self.waitTimePerCar[car.unique_id][-1] += 1
+
         for car in self.using:
             self.time[car.unique_id] += 1
             car.charge(self.power)
