@@ -4,15 +4,15 @@ from agents.car import *
 from agents.station import StationAgent
 from agents.stop import StopAgent
 
-# funcs = [new_tesla_model_s,
-#          new_tesla_model_3,
-#          new_tesla_model_y,
-#          new_chevrolet_bolt,
-#          new_mustang_mach_e,
-#          new_renault_twizy,
-#          new_renault_zoe]
+funcs = [new_tesla_model_s,
+         new_tesla_model_3,
+         new_tesla_model_y,
+         new_chevrolet_bolt,
+         new_mustang_mach_e,
+         new_renault_twizy,
+         new_renault_zoe]
 
-funcs = [new_renault_twizy]
+# funcs = [new_renault_twizy]
 
 with open("../../files/step2.json", "r") as read_file:
     stop_points = json.load(read_file)
