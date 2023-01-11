@@ -96,6 +96,7 @@ class CarAgent():
                 self.go_charge(self.closestStation)
                 self.current_point = self.closestStation.ref_id
                 self.logs.append({"Station": [self.current_point, len(self.closestStation.waiting)]})
+                self.logs.append({"Battery": [self.max_battery, self.battery_energy]})
                 self.needToCharge = False
             else:
                 self.current_point = self.path[0]

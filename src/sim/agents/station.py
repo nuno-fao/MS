@@ -1,11 +1,11 @@
 percentage_cut = 0.5
 distance_cut = 50
-time_cut = 20
+time_cut = 5
 
 number_of_cars_to_cut = 4
 
-shall_cut = True
-shall_order = True
+shall_cut = False
+shall_order = False
 
 
 class StationAgent():
@@ -69,11 +69,13 @@ class StationAgent():
             self.waitTimePerCar[car.unique_id][-1] += 1
 
         for car in self.using:
-            self.time[car.unique_id] += 1
+            if shall_cut:
+                self.time[car.unique_id] += 1
             car.charge(self.power)
             if car.battery_energy >= car.max_battery:
                 car.stop_charge()
             elif shall_cut and self.cut_car(car):
+                print(car.battery_energy / car.max_battery)
                 car.stop_charge()
 
     def cut_on_percentage(self, car):
