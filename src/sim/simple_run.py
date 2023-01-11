@@ -2,12 +2,11 @@ import json
 
 from model import Model
 
-cars = 500
+cars = 1000
 model = Model(cars, 3, 16, 8)
 i = 0
 while len(model.finished) < cars:
-    if i % 100 == 0:
-        print(i, len(model.finished))
+    print(i, len(model.finished))
     model.step()
     i += 1
     if i > 100000:
