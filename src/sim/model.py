@@ -211,8 +211,12 @@ class Model(mesa.Model):
         return st, closest
 
     def closest_charger_with_initial_point(self, coords1, coords2, car):
+        # if (coords1[0] == -22.887983194586603 and coords2[0] == -22.795666862537107) or (
+        #         (coords2[0] == -22.887983194586603 and coords1[0] == -22.795666862537107)):
+        #     print("okk")
         closest = 1000000000000
         st = None
+        out_dist1 = 1000000000
         for station in self.stations_list:
             dist1 = distance.geodesic(coords1, station.coords).km
             dist2 = distance.geodesic(station.coords, coords2).km
@@ -222,16 +226,18 @@ class Model(mesa.Model):
             if dist1 + dist2 < closest:
                 st = station
                 closest = dist1 + dist2
-        # if st is None:
-        #     for station in self.stations_list:
-        #         dist1 = distance.geodesic(coords1, station.coords).km
-        #         dist2 = distance.geodesic(station.coords, coords2).km
-        #         if dist1 > (car.battery_energy / car.average_consume_per_100_km * 100):
-        #             continue
-        #         if dist1 + dist2 < closest:
-        #             st = station
-        #             closest = dist1 + dist2
-        return st, closest
+                out_dist1 = dist1
+        if st is None:
+            for station in self.stations_list:
+                dist1 = distance.geodesic(coords1, station.coords).km
+                dist2 = distance.geodesic(station.coords, coords2).km
+                if dist1 > (car.battery_energy / car.average_consume_per_100_km * 100):
+                    continue
+                if dist1 + dist2 < closest:
+                    st = station
+                    closest = dist1 + dist2
+                    out_dist1 = dist1
+        return st, out_dist1
 
     def step(self):
         self.schedule.step()
