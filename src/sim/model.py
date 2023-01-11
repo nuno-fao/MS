@@ -1,3 +1,5 @@
+import random
+
 from geopy import distance
 
 from agents.car import *
@@ -37,13 +39,14 @@ for idx in stop_points:
 # print((right - left), (top - bottom))
 
 
-class Model(mesa.Model):
+class Model():
     """A model with some number of agents."""
 
     def __init__(self, cars, stations, width, height):
         self.num_agents = cars + stations + len(stop_points)
-        self.grid = mesa.space.MultiGrid(width, height, True)
-        self.schedule = mesa.time.RandomActivation(self)
+        self.schedule = []
+        # self.grid = mesa.space.MultiGrid(width, height, True)
+        # self.schedule = mesa.time.RandomActivation(self)
         self.cars_list = list()
         self.stations_list = list()
         self.stop_points = stop_points
@@ -75,11 +78,11 @@ class Model(mesa.Model):
             stations = json.load(read_file)
             for station in stations:
                 a = StationAgent(ids, self, 2, 250, stations[station])
-                self.schedule.add(a)
+                self.schedule.append(a)
                 x = max(int((stations[station][1] - left) / abs(left - right) * self.w) - 1, 0)
                 y = max(int((stations[station][0] - bottom) / abs(bottom - top) * self.h) - 2, 0)
                 # print(x, y)
-                self.grid.place_agent(a, (x, y))
+                # self.grid.place_agent(a, (x, y))
                 self.stations_list.append(a)
                 ids += 1
 
@@ -90,8 +93,8 @@ class Model(mesa.Model):
 
     def setup_cars(self, cars):
         for i in range(cars):
-            a = self.random.choice(funcs)(i, self, self.random.randint(50, 100) / 100.0)
-            idxs = self.random.sample(list(stop_points), 100)
+            a = random.choice(funcs)(i, self, random.randint(50, 100) / 100.0)
+            idxs = random.sample(list(stop_points), 100)
             path = [p for p in idxs]
             a.set_path(path)
             # a.set_path([
@@ -196,11 +199,11 @@ class Model(mesa.Model):
             #     "448",
             #     "317"
             # ])
-            self.schedule.add(a)
+            self.schedule.append(a)
             self.cars_list.append(a)
 
-            x, y = self.rand_point()
-            self.grid.place_agent(a, (x, y))
+            # x, y = self.rand_point()
+            # self.grid.place_agent(a, (x, y))
         return cars
 
     def closest_charge(self, coords):
@@ -258,10 +261,11 @@ class Model(mesa.Model):
                         self.trafficPerStation[self.stepCount][car.closestStation.unique_id] = 1
 
         self.stepCount += 1
-        self.schedule.step()
+        for agent in self.schedule:
+            agent.step()
 
     def rand_point(self):
-        p = self.random.choice(list(self.stop_points))
+        p = random.choice(list(self.stop_points))
         p = self.stop_points[p]
         x = max(int((p[1] - left) / abs(left - right) * self.w) - 1, 0)
         y = max(int((p[0] - bottom) / abs(bottom - top) * self.h) - 1, 0)

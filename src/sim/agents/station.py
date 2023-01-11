@@ -1,11 +1,10 @@
-import mesa
-
-
-class StationAgent(mesa.Agent):
+class StationAgent():
     """An agent with fixed initial wealth."""
 
     def __init__(self, unique_id, model, spots, power, coords):
-        super().__init__(unique_id, model)
+
+        self.unique_id = unique_id
+        self.model = model
         self.spots = spots  # battery in W.h
         self.power = power / 60
         self.using = list()
@@ -19,7 +18,7 @@ class StationAgent(mesa.Agent):
             self.using.append(car)
         else:
             self.waiting.append(car)
-        
+
         if car.unique_id in self.waitTimePerCar.keys():
             self.waitTimePerCar[car.unique_id].append(0)
         else:
@@ -31,16 +30,15 @@ class StationAgent(mesa.Agent):
             self.using.append(self.waiting.pop(0))
 
     def step(self):
-        self.occupancyPerStep.append((len(self.using) + len(self.waiting))*100/self.spots)
+        self.occupancyPerStep.append((len(self.using) + len(self.waiting)) * 100 / self.spots)
 
         for car in self.waiting:
-            self.waitTimePerCar[car.unique_id][-1]+=1
+            self.waitTimePerCar[car.unique_id][-1] += 1
 
         for car in self.using:
             car.charge(self.power)
             if car.battery_energy >= car.max_battery:
                 car.stop_charge()
-        
 
     @staticmethod
     def type():

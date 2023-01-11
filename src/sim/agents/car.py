@@ -1,14 +1,14 @@
 import json
 
-import mesa
 from agents.station import StationAgent
 
 
-class CarAgent(mesa.Agent):
+class CarAgent():
     """An agent with fixed initial wealth."""
 
     def __init__(self, unique_id, model, battery_energy, max_battery, average_consume_per_100_km):
-        super().__init__(unique_id, model)
+        self.unique_id = unique_id
+        self.model = model
         self.path = None
         self.battery_energy = battery_energy  # battery in W.h
         self.max_battery = max_battery
