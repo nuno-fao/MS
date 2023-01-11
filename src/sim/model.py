@@ -244,10 +244,15 @@ class Model(mesa.Model):
 
     def step(self):
         self.trafficPerStation[self.stepCount] = {}
+        for station in self.stations_list:
+            if station.unique_id in self.trafficPerStation[self.stepCount].keys():
+                self.trafficPerStation[self.stepCount][station.unique_id] += 1
+            else:
+                self.trafficPerStation[self.stepCount][station.unique_id] = 1
         for car in self.cars_list:
             if car.needToCharge:
                 if car.dist_to_next <= 2.0:
-                    if car.closestStation in self.trafficPerStation[self.stepCount].keys():
+                    if car.closestStation.unique_id in self.trafficPerStation[self.stepCount].keys():
                         self.trafficPerStation[self.stepCount][car.closestStation.unique_id] += 1
                     else:
                         self.trafficPerStation[self.stepCount][car.closestStation.unique_id] = 1
