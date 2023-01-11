@@ -58,6 +58,8 @@ class Model(mesa.Model):
         # self.setup_stops(ids)
 
         self.finished = set()
+        self.trafficPerStation = {}
+        self.stepCount = 0
 
     def setup_stops(self, ids):
         for i in stop_points:
@@ -241,6 +243,16 @@ class Model(mesa.Model):
         return st, out_dist1
 
     def step(self):
+        self.trafficPerStation[self.stepCount] = {}
+        for car in self.cars_list:
+            if car.needToCharge:
+                if car.dist_to_next <= 2.0:
+                    if car.closestStation in self.trafficPerStation[self.stepCount].keys():
+                        self.trafficPerStation[self.stepCount][car.closestStation.unique_id] += 1
+                    else:
+                        self.trafficPerStation[self.stepCount][car.closestStation.unique_id] = 1
+
+        self.stepCount += 1
         self.schedule.step()
 
     def rand_point(self):

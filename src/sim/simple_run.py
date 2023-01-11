@@ -24,3 +24,24 @@ with open("logs.json", "w") as outfile:
     for car in model.cars_list:
         car_logs[car.unique_id] = [car.logs, car.path]
     json.dump(car_logs, outfile)
+
+with open("car_distances.json", "w") as outfile:
+    final = {}
+    for car in model.cars_list:
+        final[car.unique_id] = {"total":car.km,"km_spent_to_charge":car.kmToCharge}
+    json.dump(final,outfile)
+
+for station in model.stations_list:
+    wait_times = {}
+    occupancies = {}
+
+    wait_times[station.unique_id] = station.waitTimePerCar
+    occupancies[station.unique_id] = station.occupancyPerStep
+
+    with open("wait_times.json", "w") as outfile:
+        json.dump(wait_times,outfile)
+    with open("occupancies.json", "w") as outfile:
+        json.dump(occupancies,outfile)
+    
+with open("traffic_per_station","w") as outfile:
+    json.dump(model.trafficPerStation,outfile)
