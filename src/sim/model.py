@@ -115,20 +115,21 @@ class Model(mesa.Model):
         for station in self.stations_list:
             dist1 = distance.geodesic(coords1, station.coords).km
             dist2 = distance.geodesic(station.coords, coords2).km
-            if dist1 > car.battery_energy / car.average_consume_per_100_km * 100 or dist2 > car.max_battery / car.average_consume_per_100_km * 100:
+            if dist1 > (car.battery_energy / car.average_consume_per_100_km * 100) or dist2 > (
+                    car.max_battery / car.average_consume_per_100_km * 100):
                 continue
             if dist1 + dist2 < closest:
                 st = station
                 closest = dist1 + dist2
-        if st is None:
-            for station in self.stations_list:
-                dist1 = distance.geodesic(coords1, station.coords).km
-                dist2 = distance.geodesic(station.coords, coords2).km
-                if dist1 > car.battery_energy / car.average_consume_per_100_km * 100:
-                    continue
-                if dist1 + dist2 < closest:
-                    st = station
-                    closest = dist1 + dist2
+        # if st is None:
+        #     for station in self.stations_list:
+        #         dist1 = distance.geodesic(coords1, station.coords).km
+        #         dist2 = distance.geodesic(station.coords, coords2).km
+        #         if dist1 > (car.battery_energy / car.average_consume_per_100_km * 100):
+        #             continue
+        #         if dist1 + dist2 < closest:
+        #             st = station
+        #             closest = dist1 + dist2
         return st, closest
 
     def step(self):

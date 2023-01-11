@@ -38,6 +38,7 @@ class CarAgent(mesa.Agent):
         self.battery_energy += energy
 
     def set_path(self, path):
+        self.logs.append(path)
         self.path = path
         self.current_point = self.model.stop_points[path[0]]
         self.path = self.path[1:]
@@ -68,10 +69,8 @@ class CarAgent(mesa.Agent):
                 self.model.get_stop_coords(self.path[0]), self)
             if smart_charge is not None:
                 return smart_charge, smart_distance
-            with open("unfinished.json", "w") as outfile:
-                car_logs = {}
-                if self.finished == False:
-                    car_logs[self.unique_id] = self.logs
+            with open("unfinished" + str(self.unique_id) + ".json", "w") as outfile:
+                car_logs = {self.unique_id: self.logs}
                 json.dump(car_logs, outfile)
             raise Exception("Cant get to next point")
         else:
@@ -95,22 +94,18 @@ class CarAgent(mesa.Agent):
             if self.needToCharge:
                 self.go_charge(self.closestStation)
                 self.current_point = self.closestStation.coords
-                self.logs.append(
-                    "Arrived at station " + str(self.max_battery) + " " + str(len(self.path)) + " " + str(
-                        self.current_point))
-                self.logs.append("Charging " + str(self.closestStation.unique_id) + " " + str(self.current_point))
+                self.logs.append({"Station": self.current_point})
                 self.needToCharge = False
             else:
                 self.current_point = self.model.stop_points[self.path[0]]
                 self.path = self.path[1:]
-                self.logs.append(
-                    "Arrived at destination " + str(self.max_battery) + " " + str(len(self.path)) + " " + str(
-                        self.current_point))
+                self.logs.append({"Current": self.current_point})
                 if len(self.path) == 0:
                     return self.check_finished()
                 self.handle_departure()
 
         if self.is_moving:
+            # self.logs.append({"Moving": self.dist_to_next})
             self.battery_energy -= self.consume_per_minute
             self.km += self.dist_per_minute
             self.dist_to_next -= self.dist_per_minute
@@ -118,14 +113,13 @@ class CarAgent(mesa.Agent):
     def handle_departure(self):
         station, dist = self.should_charge()
         if station is not None:
-            self.logs.append("Needs to charge, going to closest station")
             self.closestStation = station
             self.dist_to_next = dist
             self.needToCharge = True
+            self.logs.append({"Next": self.model.stop_points[self.path[0]]})
         else:
             self.dist_to_next = self.model.get_dist(self.current_point, self.path[0])
-            self.logs.append("Going to next point" + " " + str(self.current_point) + " to " +
-                             str(self.model.stop_points[self.path[0]]))
+            self.logs.append({"Travel": [self.current_point, self.model.stop_points[self.path[0]]]})
 
     def check_finished(self):
         if self.finished:

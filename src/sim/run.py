@@ -13,7 +13,8 @@ def agent_portrayal(agent):
     if agent.type() == "station":
         portrayal["Color"] = "gray"
         portrayal["r"] = 1.0
-        portrayal["Layer"] = 0
+        portrayal["Coords"] = str(agent.coords)
+        portrayal["Id"] = str(agent.unique_id)
     elif agent.type() == "stop":
         portrayal["Color"] = "blue"
         portrayal["Layer"] = 2
@@ -22,9 +23,9 @@ def agent_portrayal(agent):
     return portrayal
 
 
-grid = mesa.visualization.CanvasGrid(agent_portrayal, 16, 8, 1600, 800)
+grid = mesa.visualization.CanvasGrid(agent_portrayal, 160, 80, 1600, 800)
 server = mesa.visualization.ModularServer(
-    Model, [grid], "Money Model", {"cars": 70, "stations": 3, "width": 16, "height": 8}
+    Model, [grid], "Money Model", {"cars": 70, "stations": 3, "width": 160, "height": 80}
 )
 
 server.port = 8522  # The default
