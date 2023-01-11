@@ -11,12 +11,19 @@ class StationAgent(mesa.Agent):
         self.using = list()
         self.waiting = list()
         self.coords = coords
+        self.order_waiting = self.order_waiting_fastest_first
+
+    def order_waiting_fastest_first(self, car):
+        # print(car.max_battery - car.battery_energy, self.power,
+        #       (car.max_battery - car.battery_energy) / (self.power * 60))
+        return (car.max_battery - car.battery_energy) / (self.power * 60)
 
     def start_charge(self, car):
         if len(self.using) < self.spots:
             self.using.append(car)
         else:
             self.waiting.append(car)
+        self.waiting.sort(key=self.order_waiting)
 
     def stop_charge(self, unique_id):
         self.using = [x for x in self.using if not x.unique_id == unique_id]

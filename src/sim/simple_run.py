@@ -6,8 +6,8 @@ cars = 500
 model = Model(cars, 3, 16, 8)
 i = 0
 while len(model.finished) < cars:
-    if i % 100 == 0:
-        print(i, len(model.finished))
+    # if i % 100 == 0:
+    print(i, len(model.finished))
     model.step()
     i += 1
     if i > 100000:
