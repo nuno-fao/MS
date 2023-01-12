@@ -1,11 +1,11 @@
 percentage_cut = 0.5
 distance_cut = 50
-time_cut = 5
+time_cut = 20
 
 number_of_cars_to_cut = 4
 
-shall_cut = False
-shall_order = False
+shall_cut = True
+shall_order = True
 
 
 class StationAgent():
@@ -26,7 +26,7 @@ class StationAgent():
         self.occupancyPerStep = []
 
         self.order_waiting = self.order_waiting_fastest_first
-        self.cut_car = self.cut_on_time
+        self.cut_car = self.cut_on_distance
 
         self.ignore_limit = set()
         self.time = dict()
