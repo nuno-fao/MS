@@ -8,6 +8,7 @@ i = 0
 while len(model.finished) < cars:
     model.step()
     i += 1
+    print(i,len(model.finished))
     if i > 100000:
         with open("unfinished.json", "w") as outfile:
             car_logs = {}
