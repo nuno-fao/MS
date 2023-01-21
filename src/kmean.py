@@ -3,7 +3,7 @@ import json
 import numpy as np
 import requests
 
-with open('../files/step2.json', 'r') as f:
+with open('./files/step2.json', 'r') as f:
     data = json.load(f)
 
 
@@ -286,6 +286,7 @@ def kmeans(dset, k):
     return assigned_data, centroids
 
 
-# api_setup(data)
+api_setup(data)
 
 assigned_data, centroids = kmeans(data, 20)
+print(centroids)

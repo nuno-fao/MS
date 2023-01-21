@@ -25,7 +25,7 @@ fs.readFile("files/step2.json", 'utf8', (err, data) => {
     }
 
     const ratio = (rightPoint[0] - leftPoint[0]) / (leftPoint[1] - rightPoint[1])
-    console.log(ratio)
+    //console.log(ratio)
 
     const width = 1200;
     const height = width / ratio;
@@ -42,12 +42,12 @@ fs.readFile("files/step2.json", 'utf8', (err, data) => {
 
     for (const p in points) {
         const point = points[p]
-        console.log(point)
+        //console.log(point)
 
         context.fillRect(width - width * getR(point[1], rightPoint[0], leftPoint[0]), height - height * getR(point[0], rightPoint[1], leftPoint[1]), 10, 10);
     }
 
-    console.log("\n")
+    //console.log("\n")
     fs.readFile("files/centroids.json", 'utf8', (err, data) => {
         const points = JSON.parse(data)
 
@@ -55,7 +55,7 @@ fs.readFile("files/step2.json", 'utf8', (err, data) => {
 
         for (const p in points) {
             const point = points[p]
-            console.log(point)
+            //console.log(point)
             context.fillRect(width - width * getR(point[1], rightPoint[0], leftPoint[0]), height - height * getR(point[0], rightPoint[1], leftPoint[1]), 20, 20);
         }
 
