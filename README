@@ -1,0 +1,20 @@
+To run the simulation pypy3 is recommended, python3 may also work but run considerably slower.
+
+Copy folders inside [folder](https://we.tl/t-7Mi8cGfUqk) to the root of the project with the folowing tree:
+
+	root-
+		files/
+		dataset/
+		src/
+		
+		
+Navigate
+		
+		
+To run the setup parts of the system delete the contents of dataset/ and files/ and then run ```make```. 
+This is not recommendend as the full make may take over 2 hours and consume over 13GiB of memory.
+
+If ```make``` is run without deleting the files, the expensive steps will be ignored.
+The setup part of the system only works on Linux 64bit System (tested in Ubuntu 22.04) as parts of the setup (Distance matrix and API) depend on a compiled version of the algorithm made in Go, as python proved to be too slow for the task.
+
+The repository with the dijkstra code can be found [here](https://github.com/rocas777/RouteFInder
