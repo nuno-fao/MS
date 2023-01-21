@@ -2,8 +2,8 @@ import json
 
 from model import Model
 
-cars = 1000
-model = Model(cars, 3, 16, 8)
+cars = 500
+model = Model(cars, 20, 16, 8)
 i = 0
 while len(model.finished) < cars:
     model.step()
@@ -43,3 +43,6 @@ with open("occupancies.json", "w") as outfile:
 
 with open("traffic_per_station.json", "w") as outfile:
     json.dump(model.trafficPerStation, outfile)
+
+with open("waitingCarsPerStep.json", "w") as outfile:
+    json.dump(model.waitingCarsPerStep, outfile)

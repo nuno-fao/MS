@@ -64,6 +64,7 @@ class Model():
 
         self.finished = set()
         self.trafficPerStation = {}
+        self.waitingCarsPerStep = {}
         self.stepCount = 0
 
     def setup_stops(self, ids):
@@ -76,14 +77,20 @@ class Model():
         return ids
 
     def setup_stations(self, ids):
-        with open("../../files/centroids.json", "r") as read_file:
+        with open("../../files/centroids20.json", "r") as read_file:
             centroids_map = json.load(read_file)
             local_distances_map = centroids_map["distances"]
             for c in local_distances_map:
                 distances_map["s" + str(c)] = local_distances_map[c]
             stations = centroids_map["points"]
             for station in stations:
-                a = StationAgent(ids, self, 2, 250, stations[station], "s" + str(station))
+
+                if (ids == 506 or ids == 1006):
+                    a = StationAgent(ids, self, 10, 40, stations[station], "s" + str(station))
+                else:
+                    a = StationAgent(ids, self, 4, 40, stations[station], "s" + str(station))
+
+                # a = StationAgent(ids, self, 5, 40, stations[station], "s" + str(station))
                 self.schedule.append(a)
                 x = max(int((stations[station][1] - left) / abs(left - right) * self.w) - 1, 0)
                 y = max(int((stations[station][0] - bottom) / abs(bottom - top) * self.h) - 2, 0)
@@ -262,6 +269,14 @@ class Model():
         return st, out_dist1
 
     def step(self):
+
+        count = 0
+
+        for station in self.stations_list:
+            count += len(station.waiting)
+
+        self.waitingCarsPerStep[self.stepCount] = count
+
         self.trafficPerStation[self.stepCount] = {}
         for station in self.stations_list:
             if station.unique_id in self.trafficPerStation[self.stepCount].keys():
