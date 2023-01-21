@@ -6,6 +6,7 @@
 | Luís Pinto    | up201806206@up.pt |
 | Maria Baía    | ---               |
 
+## Simulation
 To run the simulation pypy3 is recommended, python3 may also work but runs considerably slower.
 
 Copy folders inside [folder](https://we.tl/t-7Mi8cGfUqk) to the root of the project with the folowing tree:
@@ -36,7 +37,9 @@ The following should also be changed to change the applied policy:
         self.cut_car = self.cut_on_distance # can be = self.cut_on_distance or self.cut_on_percentage or self.cut_on_time
 ```
 		
-		
+## Setup	
+Install the python dependencies in requirements.txt and nodejs dependencies in package.json.
+
 To run the setup parts of the system delete the contents of dataset/ and files/ and then run ```make```. 
 This is not recommendend as the full make may take over 2 hours and consume over 13GiB of memory.
 
