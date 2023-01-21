@@ -1,11 +1,11 @@
-percentage_cut = 0.5
-distance_cut = 50
-time_cut = 20
+percentage_cut = 0.5 # percentage of battery to cut
+distance_cut = 50 # distance in km to cut
+time_cut = 20 # time in minutes to cut
 
-number_of_cars_to_cut = 4
+number_of_cars_to_cut = 4 # length of the queue to apply the cut
 
-shall_cut = True
-shall_order = True
+shall_cut = True # if the cut policy sould be applied
+shall_order = True # if the non fifo ordering should be applied
 
 
 class StationAgent():
@@ -26,7 +26,7 @@ class StationAgent():
         self.occupancyPerStep = []
 
         self.order_waiting = self.order_waiting_fastest_first
-        self.cut_car = self.cut_on_distance
+        self.cut_car = self.cut_on_distance # can be = self.cut_on_distance or self.cut_on_percentage or self.cut_on_time
 
         self.ignore_limit = set()
         self.time = dict()
